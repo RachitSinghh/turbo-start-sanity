@@ -212,6 +212,23 @@ export const queryAllBlogDataForSearch = defineQuery(`
   }
 `);
 
+// Unfiltered by seoNoIndex/seoHideFromLists (unlike the query above) — the
+// Algolia sync needs to see those flags to decide whether to remove a post
+// from the index, not have them silently filtered out of the result.
+export const queryBlogPostForAlgoliaSync = defineQuery(`
+  *[_type == "blog" && _id == $id][0]{
+    _id,
+    title,
+    description,
+    "slug": slug.current,
+    category,
+    publishedAt,
+    "author": authors[0]->name,
+    seoNoIndex,
+    seoHideFromLists
+  }
+`);
+
 export const queryBlogSlugPageData = defineQuery(`
   *[_type == "blog" && slug.current == $slug][0]{
     ...,

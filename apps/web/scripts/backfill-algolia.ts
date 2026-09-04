@@ -54,7 +54,7 @@ type BlogPost = {
 };
 
 const posts = await sanity.fetch<BlogPost[]>(
-  `*[_type == "blog" && defined(slug.current)]{
+  `*[_type == "blog" && defined(slug.current) && (seoNoIndex != true) && (seoHideFromLists != true)]{
     _id,
     title,
     description,
