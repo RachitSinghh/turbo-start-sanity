@@ -34,6 +34,7 @@
     "@workspace/env": "workspace:*",
     "@workspace/logger": "workspace:*",
     "@workspace/sanity-blocks": "workspace:*",
+    "algoliasearch": "^5.57.0",
     "dotenv": "^17.4.2",
     "friendlier-words": "^1.2.0",
     "lucide-react": "catalog:",

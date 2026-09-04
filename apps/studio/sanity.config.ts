@@ -9,6 +9,7 @@ import { media } from "sanity-plugin-media";
 import { muxInput } from "sanity-plugin-mux-input";
 
 import { Logo } from "@/components/logo";
+import { SeoIndexView } from "@/components/seo-index-view";
 import { locations } from "@/location";
 import { presentationUrl } from "@/plugins/presentation-url";
 import { schemaTypes, singletonTypes } from "@/schemaTypes/index";
@@ -51,6 +52,16 @@ export default defineConfig({
     }),
     structureTool({
       structure,
+      // Blog posts are reached through the orderable list, not the `.views()`
+      // call in structure.ts, so the SEO & Index tab is added here where it
+      // applies to every blog document however it's opened.
+      defaultDocumentNode: (S, { schemaType }) =>
+        schemaType === "blog"
+          ? S.document().views([
+              S.view.form(),
+              S.view.component(SeoIndexView).title("SEO & Index"),
+            ])
+          : S.document(),
     }),
     presentationUrl(),
     visionTool(),
