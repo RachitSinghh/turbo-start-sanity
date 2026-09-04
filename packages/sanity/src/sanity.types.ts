@@ -669,6 +669,16 @@ export type CustomUrl = {
   internal?: BlogReference | BlogIndexReference | PageReference;
 };
 
+export type Subscriber = {
+  _id: string;
+  _type: "subscriber";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  email: string;
+  subscribedAt?: string;
+};
+
 export type Redirect = {
   _id: string;
   _type: "redirect";
@@ -1404,6 +1414,7 @@ export type AllSanitySchemaTypes =
   | BlogIndexReference
   | PageReference
   | CustomUrl
+  | Subscriber
   | Redirect
   | Slug
   | Navbar
@@ -3473,13 +3484,7 @@ export type QueryBlogIndexPageResult = {
         slug: string | null;
         orderRank: string | null;
         category:
-          | "aeo"
-          | "changelog"
-          | "nextjs"
-          | "sanity"
-          | "seo"
-          | "skills"
-          | null;
+          "aeo" | "changelog" | "nextjs" | "sanity" | "seo" | "skills" | null;
         image: {
           id: string | null;
           preview: string | null;
@@ -3526,13 +3531,7 @@ export type QueryBlogIndexPageResult = {
     slug: string | null;
     orderRank: string | null;
     category:
-      | "aeo"
-      | "changelog"
-      | "nextjs"
-      | "sanity"
-      | "seo"
-      | "skills"
-      | null;
+      "aeo" | "changelog" | "nextjs" | "sanity" | "seo" | "skills" | null;
     image: {
       id: string | null;
       preview: string | null;
