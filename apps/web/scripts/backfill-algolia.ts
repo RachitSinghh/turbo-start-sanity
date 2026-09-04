@@ -43,6 +43,14 @@ const sanity = createClient({
 
 const algolia = algoliasearch(algoliaAppId, algoliaWriteKey);
 
+// Algolia rejects `filters` on an attribute it hasn't been told is
+// filterable — the search route filters by category, so that has to be
+// declared here. Safe to call on every run; it just re-applies the setting.
+await algolia.setSettings({
+  indexName: algoliaIndexName,
+  indexSettings: { attributesForFaceting: ["category"] },
+});
+
 type BlogPost = {
   _id: string;
   title: string | null;

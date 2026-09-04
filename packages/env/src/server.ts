@@ -22,6 +22,7 @@ const env = createEnv({
     ALGOLIA_APP_ID: z.string().min(1),
     ALGOLIA_INDEX_NAME: z.string().min(1),
     ALGOLIA_WRITE_API_KEY: z.string().min(1),
+    ALGOLIA_SEARCH_API_KEY: z.string().min(1),
   },
 
   experimental__runtimeEnv: {

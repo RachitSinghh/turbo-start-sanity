@@ -1,22 +1,27 @@
-import {
-  type DynamicFetchOptions,
-  getDynamicFetchOptions,
-  sanityFetch,
-} from "@workspace/sanity/live";
-import { queryAllBlogDataForSearch } from "@workspace/sanity/query";
-import Fuse from "fuse.js";
+import { env } from "@workspace/env/server";
+import { Logger } from "@workspace/logger";
+import { algoliasearch } from "algoliasearch";
+import { cacheLife } from "next/cache";
 import { NextResponse } from "next/server";
 
-async function getSearchableBlogs(
-  perspective: DynamicFetchOptions["perspective"]
-) {
+const logger = new Logger("BlogSearch");
+
+const RESULTS_PER_PAGE = 10;
+
+async function searchAlgolia(query: string, page: number, category: string) {
   "use cache";
-  const { data } = await sanityFetch({
-    query: queryAllBlogDataForSearch,
-    perspective,
-    stega: false,
+  cacheLife({ stale: 30, revalidate: 30, expire: 60 });
+
+  const algolia = algoliasearch(env.ALGOLIA_APP_ID, env.ALGOLIA_SEARCH_API_KEY);
+  return algolia.searchSingleIndex({
+    indexName: env.ALGOLIA_INDEX_NAME,
+    searchParams: {
+      query,
+      page,
+      hitsPerPage: RESULTS_PER_PAGE,
+      filters: category ? `category:"${category}"` : undefined,
+    },
   });
-  return data;
 }
 
 export async function GET(request: Request) {
@@ -27,20 +32,29 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Query is required" }, { status: 400 });
   }
 
-  const { perspective } = await getDynamicFetchOptions();
-  const data = await getSearchableBlogs(perspective);
+  const category = searchParams.get("category") ?? "";
 
-  if (!data) {
-    return NextResponse.json({ error: "No data found" }, { status: 404 });
+  // Public API param is 1-indexed (page=1 is the first page); Algolia's own
+  // `page` is 0-indexed, so the conversion happens right here at the edge.
+  const requestedPage = Number.parseInt(searchParams.get("page") ?? "1", 10);
+  const page =
+    Number.isInteger(requestedPage) && requestedPage > 0
+      ? requestedPage - 1
+      : 0;
+
+  try {
+    const result = await searchAlgolia(query, page, category);
+    return NextResponse.json({
+      results: result.hits,
+      page: (result.page ?? 0) + 1,
+      totalPages: result.nbPages ?? 0,
+      totalResults: result.nbHits ?? 0,
+    });
+  } catch (error) {
+    logger.error("Algolia search failed", error);
+    return NextResponse.json(
+      { error: "Search is temporarily unavailable" },
+      { status: 503 }
+    );
   }
-
-  const fuse = new Fuse(data, {
-    keys: ["title", "description", "slug", "authors.name"],
-    threshold: 0.3,
-  });
-
-  const results = fuse.search(query, {
-    limit: 10,
-  });
-  return NextResponse.json(results.map((result) => result.item));
 }
